@@ -8,7 +8,7 @@
             "command": "bash",
             "args": [
                 "-c",
-                "mkdir -p ${workspaceFolder}/build && g++ -g ${workspaceFolder}/*.cpp -o ${workspaceFolder}/build/output"
+                "mkdir -p ${workspaceFolder}/build && g++ -g ${workspaceFolder}/*.cpp -o ${workspaceFolder}/build/custom-tar"
             ],
             "group": {
                 "kind": "build",
