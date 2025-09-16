@@ -1,0 +1,28 @@
+{
+    // Konfiguracja zadań dla standardowej aplikacji C++
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "mkdir -p ${workspaceFolder}/build && g++ -g ${workspaceFolder}/*.cpp -o ${workspaceFolder}/build/output"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Zadanie do budowania aplikacji C++"
+        },
+        {
+            "label": "Run",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/output",
+            "group": "test",
+            "detail": "Zadanie do uruchamiania aplikacji C++"
+        }
+    ]
+}
