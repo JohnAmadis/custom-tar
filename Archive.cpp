@@ -61,6 +61,18 @@ bool Archive::list(const std::string& archivePath)
     while (archiveFile.read(reinterpret_cast<char*>(&entry), sizeof(entry)))
     {
         std::cout << "Tag: " << to_str(entry.tag) << ", Length: " << std::dec << entry.length << std::endl;
+        if( entry.tag == DIRECTORY_TAG )
+        {
+            std::string dirName = readDirectory( archiveFile, entry.length );
+            std::cout << "Directory: " << dirName << std::endl;
+            continue;
+        }
+        else if( entry.tag == FILE_TAG )
+        {
+            auto file = readFile( archiveFile, entry.length );
+            std::cout << "File: " << file.name << std::endl;
+            continue;
+        }
         archiveFile.seekg(entry.length, std::ios::cur); // Skip the data
     }
 
@@ -87,21 +99,18 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
     {
         std::vector<TlvEntry> children;
         TlvEntry nameEntry;
-        TlvEntry sizeEntry;
         TlvEntry dataEntry;
+
+        uint32_t fileOffset = static_cast<uint32_t>( archiveFile.tellp() );
 
         nameEntry.tag = NAME_TAG;
         nameEntry.length = static_cast<Tag_t>(path.size());
-
-        sizeEntry.tag = SIZE_TAG;
-        sizeEntry.length = sizeof(uint32_t);
 
         uint32_t fileSize = static_cast<uint32_t>(std::filesystem::file_size( path ));
         dataEntry.tag = DATA_TAG;
         dataEntry.length = fileSize;
 
         children.push_back( nameEntry );
-        children.push_back( sizeEntry );
         children.push_back( dataEntry );
 
         TlvEntry fileEntry;
@@ -111,8 +120,6 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
         archiveFile.write(reinterpret_cast<const char*>(&fileEntry), sizeof(fileEntry));
         archiveFile.write(reinterpret_cast<const char*>(&nameEntry), sizeof(nameEntry));
         archiveFile.write(path.c_str(), path.size());
-        archiveFile.write(reinterpret_cast<const char*>(&sizeEntry), sizeof(sizeEntry));
-        archiveFile.write(reinterpret_cast<const char*>(&fileSize), sizeof(fileSize));
         archiveFile.write(reinterpret_cast<const char*>(&dataEntry), sizeof(dataEntry));
 
         char buffer[4096];
@@ -125,7 +132,7 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
         File file;
         file.name = path;
         file.size = dataEntry.length;
-        file.offset = static_cast<uint32_t>(archiveFile.tellp());
+        file.offset = fileOffset;
         m_files[fingerprint] = file;
     }
     
@@ -138,20 +145,15 @@ void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& p
 
     std::vector<TlvEntry> children;
     TlvEntry nameEntry;
-    TlvEntry sizeEntry;
     TlvEntry dataRefEntry;
 
     nameEntry.tag = NAME_TAG;
     nameEntry.length = static_cast<Tag_t>(path.size());
 
-    sizeEntry.tag = SIZE_TAG;
-    sizeEntry.length = sizeof(uint32_t);
-
     dataRefEntry.tag = DATA_REF_TAG;
     dataRefEntry.length = sizeof(fileEntry.offset);
 
     children.push_back( nameEntry );
-    children.push_back( sizeEntry );
     children.push_back( dataRefEntry );
 
     TlvEntry entry;
@@ -161,8 +163,6 @@ void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& p
     
     archiveFile.write(reinterpret_cast<const char*>(&nameEntry), sizeof(nameEntry));
     archiveFile.write(path.c_str(), path.size());
-    archiveFile.write(reinterpret_cast<const char*>(&sizeEntry), sizeof(sizeEntry));
-    archiveFile.write(reinterpret_cast<const char*>(&fileEntry.size), sizeof(fileEntry.size));
     archiveFile.write(reinterpret_cast<const char*>(&dataRefEntry), sizeof(dataRefEntry));
     archiveFile.write(reinterpret_cast<const char*>(&fileEntry.offset), sizeof(fileEntry.offset));
 }
@@ -207,4 +207,53 @@ uint32_t Archive::getTlvSize( const std::vector<TlvEntry>& entries )
         totalSize += sizeof(entry) + entry.length;
     }
     return totalSize;
+}
+
+std::string Archive::readDirectory( std::ifstream& archiveFile, uint32_t length )
+{
+    char* buffer = new char[length];
+    archiveFile.read(buffer, length);
+    std::string dirName(buffer, length);
+    delete[] buffer;
+    return dirName;
+}
+
+Archive::File Archive::readFile( std::ifstream& archiveFile, uint32_t length )
+{
+    File file;
+    uint32_t bytesRead = 0;
+    TlvEntry entry;
+
+    file.offset = static_cast<uint32_t>(archiveFile.tellg()) - static_cast<uint32_t>(sizeof(TlvEntry));
+    
+    while (bytesRead < length && archiveFile.read(reinterpret_cast<char*>(&entry), sizeof(entry)))
+    {
+        bytesRead += sizeof(entry);
+        std::cout << "  Tag: " << to_str(entry.tag) << ", Length: " << std::dec << entry.length << std::endl;
+        
+        if( entry.tag == NAME_TAG )
+        {
+            char* buffer = new char[entry.length];
+            archiveFile.read(buffer, entry.length);
+            file.name = std::string(buffer, entry.length);
+            delete[] buffer;
+            std::cout << "      fname: " << file.name << std::endl;
+        }
+        else if( entry.tag == DATA_TAG )
+        {
+            archiveFile.seekg(entry.length, std::ios::cur); // Skip the data
+            std::cout << "      data size: " << entry.length << std::endl;
+        }
+        else if( entry.tag == DATA_REF_TAG )
+        {
+            uint32_t dataOffset;
+            archiveFile.read(reinterpret_cast<char*>(&dataOffset), sizeof(dataOffset));
+            file.offset = dataOffset;
+            std::cout << "Data Reference Offset: " << file.offset << std::endl;
+        }
+        
+        bytesRead += entry.length;
+    }
+
+    return file;
 }

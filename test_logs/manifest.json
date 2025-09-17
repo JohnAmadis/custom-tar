@@ -1,0 +1,625 @@
+{
+  "generated_at": "2025-09-17T19:52:33.397489Z",
+  "root": "/mnt/data/test_logs",
+  "files": [
+    {
+      "path": "file_0.bin",
+      "size": 8192,
+      "type": "binary"
+    },
+    {
+      "path": "file_1.txt",
+      "size": 1274,
+      "type": "text"
+    },
+    {
+      "path": "same_size_2048_2.dat",
+      "size": 2048,
+      "type": "same_size"
+    },
+    {
+      "path": "dup_bin_3.bin",
+      "size": 4096,
+      "type": "dup_bin"
+    },
+    {
+      "path": "file_4.bin",
+      "size": 512,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/file_0.txt",
+      "size": 421,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/file_1.bin",
+      "size": 1024,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/file_2.bin",
+      "size": 16384,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_1/dup_bin_0.bin",
+      "size": 1024,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d1_2/file_0.txt",
+      "size": 1503,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/same_size_512_1.dat",
+      "size": 512,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d1_2/file_2.bin",
+      "size": 1024,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d2_0/same_size_1024_0.dat",
+      "size": 1024,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d2_0/file_1.txt",
+      "size": 208,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_0/file_2.txt",
+      "size": 2157,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_0/file_3.txt",
+      "size": 724,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_1/file_0.txt",
+      "size": 32,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_1/file_1.bin",
+      "size": 512,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d2_1/file_2.txt",
+      "size": 49,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_0/file_0.bin",
+      "size": 512,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_0/file_1.txt",
+      "size": 1651,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_0/dup_text_2.log",
+      "size": 189,
+      "type": "dup_text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_0/file_3.bin",
+      "size": 8192,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_0/file_4.txt",
+      "size": 61,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_0/file_5.bin",
+      "size": 4096,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/file_0.bin",
+      "size": 1024,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dup_bin_1.bin",
+      "size": 4096,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/file_0.bin",
+      "size": 16384,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/file_1.txt",
+      "size": 1443,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/file_2.txt",
+      "size": 1297,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/file_0.bin",
+      "size": 1024,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/same_size_512_1.dat",
+      "size": 512,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/file_2.bin",
+      "size": 65536,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/file_3.bin",
+      "size": 131072,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/file_4.txt",
+      "size": 295,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_1/file_0.bin",
+      "size": 16384,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_1/same_size_512_1.dat",
+      "size": 512,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d3_0/file_0.txt",
+      "size": 1620,
+      "type": "text"
+    },
+    {
+      "path": "dir_d3_0/file_1.txt",
+      "size": 205,
+      "type": "text"
+    },
+    {
+      "path": "dir_d3_1/file_0.bin",
+      "size": 1024,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d3_1/file_1.txt",
+      "size": 1516,
+      "type": "text"
+    },
+    {
+      "path": "dir_d3_2/file_0.txt",
+      "size": 1142,
+      "type": "text"
+    },
+    {
+      "path": "dir_d3_2/file_1.txt",
+      "size": 783,
+      "type": "text"
+    },
+    {
+      "path": "dir_d3_2/file_2.bin",
+      "size": 8192,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d3_0/file_0.bin",
+      "size": 512,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d3_1/file_0.bin",
+      "size": 16384,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_1/dir_d3_0/file_0.txt",
+      "size": 609,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d3_0/same_size_2048_1.dat",
+      "size": 2048,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d1_1/dir_d3_1/dup_text_0.log",
+      "size": 189,
+      "type": "dup_text"
+    },
+    {
+      "path": "dir_d1_1/dir_d3_1/file_1.txt",
+      "size": 814,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d3_1/file_2.txt",
+      "size": 2103,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d3_2/file_0.txt",
+      "size": 1304,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d3_2/file_1.txt",
+      "size": 144,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d3_0/file_0.bin",
+      "size": 8192,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_2/dir_d3_0/file_1.txt",
+      "size": 119,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d3_0/dup_text_2.log",
+      "size": 189,
+      "type": "dup_text"
+    },
+    {
+      "path": "dir_d1_2/dir_d3_1/file_0.txt",
+      "size": 989,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d3_1/file_1.bin",
+      "size": 16384,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_2/dir_d3_2/file_0.txt",
+      "size": 3371,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_0/dir_d3_0/file_0.txt",
+      "size": 2547,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_0/dir_d3_0/file_1.bin",
+      "size": 1024,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d2_0/dir_d3_1/file_0.txt",
+      "size": 2281,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_0/dir_d3_1/dup_text_1.log",
+      "size": 189,
+      "type": "dup_text"
+    },
+    {
+      "path": "dir_d2_0/dir_d3_2/same_size_512_0.dat",
+      "size": 512,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d2_0/dir_d3_2/dup_bin_1.bin",
+      "size": 4096,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_0/same_size_4096_0.dat",
+      "size": 4096,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_0/dup_text_1.log",
+      "size": 26,
+      "type": "dup_text"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_1/file_0.txt",
+      "size": 863,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_1/file_1.bin",
+      "size": 131072,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_1/dup_text_2.log",
+      "size": 189,
+      "type": "dup_text"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_1/file_3.bin",
+      "size": 1024,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_1/dup_bin_4.bin",
+      "size": 4096,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_2/same_size_512_0.dat",
+      "size": 512,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_2/file_1.bin",
+      "size": 65536,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_2/file_2.bin",
+      "size": 512,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_2/file_3.txt",
+      "size": 1151,
+      "type": "text"
+    },
+    {
+      "path": "dir_d2_1/dir_d3_2/file_4.txt",
+      "size": 34,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_0/dir_d3_0/same_size_2048_0.dat",
+      "size": 2048,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_0/file_0.txt",
+      "size": 1265,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_0/file_1.txt",
+      "size": 385,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_0/file_2.bin",
+      "size": 8192,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_0/file_3.txt",
+      "size": 761,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_0/file_4.bin",
+      "size": 131072,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_0/file_5.bin",
+      "size": 8192,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_1/file_0.txt",
+      "size": 567,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_1/file_1.bin",
+      "size": 16384,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_1/file_2.txt",
+      "size": 1501,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_1/file_3.bin",
+      "size": 16384,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_2/file_0.bin",
+      "size": 512,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_2/file_1.bin",
+      "size": 4096,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_2/dup_bin_2.bin",
+      "size": 1024,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_2/file_3.txt",
+      "size": 1406,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_0/dir_d2_1/dir_d3_2/file_4.txt",
+      "size": 137,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_0/file_0.txt",
+      "size": 405,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_0/file_1.txt",
+      "size": 970,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_0/dup_bin_2.bin",
+      "size": 4096,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_0/file_3.txt",
+      "size": 934,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_1/dup_text_0.log",
+      "size": 26,
+      "type": "dup_text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_1/dup_bin_1.bin",
+      "size": 4096,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_1/file_2.txt",
+      "size": 90,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_1/file_3.txt",
+      "size": 92,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_1/file_4.txt",
+      "size": 2762,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_1/file_5.txt",
+      "size": 241,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/dir_d3_0/dup_bin_0.bin",
+      "size": 4096,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/dir_d3_0/file_1.txt",
+      "size": 98,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/dir_d3_0/same_size_2048_2.dat",
+      "size": 2048,
+      "type": "same_size"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/dir_d3_1/dup_text_0.log",
+      "size": 189,
+      "type": "dup_text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/dir_d3_1/file_1.txt",
+      "size": 2614,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/dir_d3_1/file_2.txt",
+      "size": 565,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/dir_d3_1/file_3.txt",
+      "size": 100,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_0/dir_d3_1/file_4.txt",
+      "size": 262,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_1/dir_d3_0/file_0.txt",
+      "size": 973,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_1/dir_d3_0/file_1.bin",
+      "size": 1024,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_1/dir_d3_0/dup_bin_2.bin",
+      "size": 1024,
+      "type": "dup_bin"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_1/dir_d3_0/file_3.txt",
+      "size": 2674,
+      "type": "text"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_1/dir_d3_1/file_0.bin",
+      "size": 8192,
+      "type": "binary"
+    },
+    {
+      "path": "dir_d1_2/dir_d2_1/dir_d3_1/file_1.txt",
+      "size": 1195,
+      "type": "text"
+    },
+    {
+      "path": "big1.bin",
+      "size": 524288,
+      "type": "big"
+    },
+    {
+      "path": "big2.bin",
+      "size": 1048576,
+      "type": "big"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_1/shared_0.bin",
+      "size": 2048,
+      "type": "shared_identical"
+    },
+    {
+      "path": "dir_d1_1/dir_d3_2/shared_1.bin",
+      "size": 2048,
+      "type": "shared_identical"
+    },
+    {
+      "path": "dir_d1_0/dir_d3_0/shared_2.bin",
+      "size": 2048,
+      "type": "shared_identical"
+    },
+    {
+      "path": "dir_d1_1/dir_d2_0/dir_d3_0/shared_3.bin",
+      "size": 2048,
+      "type": "shared_identical"
+    }
+  ],
+  "summary": {
+    "total_dirs": 38,
+    "total_files": 123
+  }
+}

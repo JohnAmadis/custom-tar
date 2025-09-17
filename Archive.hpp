@@ -60,7 +60,6 @@ private:
     static constexpr const Tag_t FILE_TAG      = "FILE"_tag;
     static constexpr const Tag_t DIRECTORY_TAG = "DIR_"_tag; 
     static constexpr const Tag_t NAME_TAG      = "NAME"_tag;
-    static constexpr const Tag_t SIZE_TAG      = "SIZE"_tag;
     static constexpr const Tag_t DATA_TAG      = "DATA"_tag;
     static constexpr const Tag_t DATA_REF_TAG  = "DATR"_tag;
 
@@ -88,6 +87,9 @@ private:
     std::optional<uint64_t> findDuplicate( const std::string& path );
 
     static uint32_t getTlvSize( const std::vector<TlvEntry>& entries );
+
+    std::string readDirectory( std::ifstream& archiveFile, uint32_t length );
+    File readFile( std::ifstream& archiveFile, uint32_t length );
 };
 
 #endif // ARCHIVE_HPP
