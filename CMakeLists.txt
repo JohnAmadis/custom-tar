@@ -14,7 +14,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_executable(custom-tar
     main.cpp
     Archive.cpp
-    Tlv.cpp
 )
 
 # Include directories if needed
