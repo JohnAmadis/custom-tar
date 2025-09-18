@@ -38,7 +38,7 @@ bool Archive::create(const std::string& outPath, const std::string& inPath)
 
     archiveFile.close();
 
-    return true; // Return true if successful, false otherwise
+    return true;
 }
 
 bool Archive::extract(const std::string& archivePath, const std::string& outPath)
@@ -80,7 +80,7 @@ bool Archive::extract(const std::string& archivePath, const std::string& outPath
 
     archiveFile.close();
 
-    return true; // Return true if successful, false otherwise
+    return true; 
 }
 
 bool Archive::list(const std::string& archivePath)
@@ -114,7 +114,7 @@ bool Archive::list(const std::string& archivePath)
 
     archiveFile.close();
 
-    return true; // Return true if successful, false otherwise
+    return true; 
 }
 
 void Archive::addFile( std::ofstream& archiveFile, const std::string& path, const std::string& basePath )
@@ -174,6 +174,7 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path, cons
         file.size = dataEntry.length;
         file.offset = fileOffset;
         file.dataOffset = dataOffset;
+        file.dataOffsetRef = 0;
         m_files[fingerprint] = file;
     }
     
@@ -208,6 +209,8 @@ void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& p
     archiveFile.write(relativePath.c_str(), relativePath.size());
     archiveFile.write(reinterpret_cast<const char*>(&dataRefEntry), sizeof(dataRefEntry));
     archiveFile.write(reinterpret_cast<const char*>(&fileEntry.offset), sizeof(fileEntry.offset));
+
+    std::cout << "Duplicate file detected: " << path << " (refers to offset " << fileEntry.offset << ")" << std::endl;
 }
 
 void Archive::addDirectory( std::ofstream& archiveFile, const std::string& path, const std::string& basePath )
@@ -333,10 +336,10 @@ Archive::File Archive::readFile( std::ifstream& archiveFile, uint32_t length )
         }
         else if( entry.tag == DATA_REF_TAG )
         {
-            uint32_t dataOffset;
-            archiveFile.read(reinterpret_cast<char*>(&dataOffset), sizeof(dataOffset));
-            file.dataOffsetRef = dataOffset;
-            std::cout << "Data Reference Offset: " << dataOffset << std::endl;
+            uint32_t fileOffset;
+            archiveFile.read(reinterpret_cast<char*>(&fileOffset), sizeof(fileOffset));
+            file.dataOffsetRef = fileOffset;
+            std::cout << "File Reference Offset: " << fileOffset << std::endl;
         }
         
         bytesRead += entry.length;
@@ -347,16 +350,15 @@ Archive::File Archive::readFile( std::ifstream& archiveFile, uint32_t length )
 
 bool Archive::extractFiles( const std::map<uint32_t, File>& files, const std::string& outPath, std::ifstream& archiveFile )
 {
-    archiveFile.clear(); // Clear any EOF flags
+    archiveFile.clear(); 
     for ( const auto& [offset, cfile] : files )
     {
-        auto file = cfile; // Make a copy to modify if needed
+        auto file = cfile; 
         std::string fullPath = outPath + "/" + file.name;
         std::filesystem::create_directories( std::filesystem::path(fullPath).parent_path() );
 
-        if ( file.dataOffsetRef != 0 )
+        if ( file.dataOffset == 0 )
         {
-            // This is a duplicate file, find the original data
             auto it = files.find( file.dataOffsetRef );
             if ( it != files.end() )
             {
@@ -377,7 +379,6 @@ bool Archive::extractFiles( const std::map<uint32_t, File>& files, const std::st
             continue;
         }
 
-        // This is an original file, read its data
         char buffer[4096];
         archiveFile.seekg(file.dataOffset, std::ios::beg);
         uint32_t remaining = file.size;
@@ -387,7 +388,7 @@ bool Archive::extractFiles( const std::map<uint32_t, File>& files, const std::st
             archiveFile.read(buffer, bytesToRead);
             if(archiveFile.gcount() == 0)
             {
-                break; // EOF or error
+                break; 
             }
 
             std::streamsize bytesRead = archiveFile.gcount();
