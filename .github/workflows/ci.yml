@@ -1,0 +1,155 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Application
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq cmake build-essential g++
+        
+    - name: Configure CMake
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      
+    - name: Build project
+      run: cmake --build build --parallel $(nproc)
+      
+    - name: Verify executable
+      run: |
+        ls -la build/bin/
+        file build/bin/custom-tar
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: custom-tar-binary
+        path: build/bin/custom-tar
+        retention-days: 1
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-22.04
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: custom-tar-binary
+        path: build/bin/
+        
+    - name: Make executable runnable
+      run: chmod +x build/bin/custom-tar
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Run tests
+      run: |
+        cd tests
+        python3 run_tests.py
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: tests/
+        retention-days: 7
+
+  test-with-sample-data:
+    name: Test with Sample Data
+    runs-on: ubuntu-22.04
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: custom-tar-binary
+        path: build/bin/
+        
+    - name: Make executable runnable
+      run: chmod +x build/bin/custom-tar
+      
+    - name: Test with real data
+      run: |
+        if [ -d "test_logs" ]; then
+          echo "Testing with test_logs directory..."
+          ./build/bin/custom-tar create test_sample.mtar test_logs/
+          ./build/bin/custom-tar list test_sample.mtar
+          mkdir -p extracted_sample
+          ./build/bin/custom-tar extract test_sample.mtar extracted_sample/
+          echo "Sample test completed successfully"
+        else
+          echo "No test_logs directory found, skipping sample test"
+        fi
+        
+    - name: Upload sample artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: sample-test-artifacts
+        path: |
+          test_sample.mtar
+          extracted_sample/
+        retention-days: 1
+
+  performance-test:
+    name: Performance Tests
+    runs-on: ubuntu-22.04
+    needs: build
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: custom-tar-binary
+        path: build/bin/
+        
+    - name: Make executable runnable
+      run: chmod +x build/bin/custom-tar
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Run performance tests
+      run: |
+        cd tests
+        python3 -m unittest test_performance.CustomTarPerformanceTest -v
+        
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-results
+        path: tests/
+        retention-days: 7
