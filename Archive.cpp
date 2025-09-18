@@ -27,12 +27,12 @@ bool Archive::create(const std::string& outPath, const std::string& inPath)
         if(entry.is_directory())
         {
             std::cout << "Directory: " << entry.path() << std::endl;
-            addDirectory( archiveFile, entry.path().string() );
+            addDirectory( archiveFile, entry.path().string(), inPath );
         }
         else if(entry.is_regular_file()) 
         {
             std::cout << "File: " << entry.path() << std::endl;
-            addFile( archiveFile, entry.path().string() );
+            addFile( archiveFile, entry.path().string(), inPath );
         }
     }
 
@@ -117,7 +117,7 @@ bool Archive::list(const std::string& archivePath)
     return true; // Return true if successful, false otherwise
 }
 
-void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
+void Archive::addFile( std::ofstream& archiveFile, const std::string& path, const std::string& basePath )
 {
     std::ifstream inputFile(path, std::ios::binary);
     if (!inputFile.is_open())
@@ -129,7 +129,7 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
     auto fingerprint = findDuplicate( path );
     if ( fingerprint )
     {
-        addDuplicateFile( archiveFile, path, *fingerprint );
+        addDuplicateFile( archiveFile, path, *fingerprint, basePath );
     }
     else
     {
@@ -139,8 +139,10 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
 
         uint32_t fileOffset = static_cast<uint32_t>( archiveFile.tellp() );
 
+        std::string relativePath = toRelativePath( basePath, path );
+
         nameEntry.tag = NAME_TAG;
-        nameEntry.length = static_cast<Tag_t>(path.size());
+        nameEntry.length = static_cast<Tag_t>(relativePath.size());
 
         uint32_t fileSize = static_cast<uint32_t>(std::filesystem::file_size( path ));
         dataEntry.tag = DATA_TAG;
@@ -155,8 +157,10 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
 
         archiveFile.write(reinterpret_cast<const char*>(&fileEntry), sizeof(fileEntry));
         archiveFile.write(reinterpret_cast<const char*>(&nameEntry), sizeof(nameEntry));
-        archiveFile.write(path.c_str(), path.size());
+        archiveFile.write(relativePath.c_str(), relativePath.size());
         archiveFile.write(reinterpret_cast<const char*>(&dataEntry), sizeof(dataEntry));
+
+        uint32_t dataOffset = static_cast<uint32_t>( archiveFile.tellp() ); // Pozycja danych
 
         char buffer[4096];
         while( inputFile.read(buffer, sizeof(buffer)) || inputFile.gcount() > 0 )
@@ -169,13 +173,14 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
         file.name = path;
         file.size = dataEntry.length;
         file.offset = fileOffset;
+        file.dataOffset = dataOffset;
         m_files[fingerprint] = file;
     }
     
     inputFile.close();
 }
 
-void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& path, const Fingerprint& fingerprint )
+void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& path, const Fingerprint& fingerprint, const std::string& basePath )
 {
     auto fileEntry = m_files[fingerprint];
 
@@ -183,8 +188,10 @@ void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& p
     TlvEntry nameEntry;
     TlvEntry dataRefEntry;
 
+    std::string relativePath = toRelativePath( basePath, path );
+
     nameEntry.tag = NAME_TAG;
-    nameEntry.length = static_cast<Tag_t>(path.size());
+    nameEntry.length = static_cast<Tag_t>(relativePath.size());
 
     dataRefEntry.tag = DATA_REF_TAG;
     dataRefEntry.length = sizeof(fileEntry.offset);
@@ -198,18 +205,20 @@ void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& p
     archiveFile.write(reinterpret_cast<const char*>(&entry), sizeof(entry));
     
     archiveFile.write(reinterpret_cast<const char*>(&nameEntry), sizeof(nameEntry));
-    archiveFile.write(path.c_str(), path.size());
+    archiveFile.write(relativePath.c_str(), relativePath.size());
     archiveFile.write(reinterpret_cast<const char*>(&dataRefEntry), sizeof(dataRefEntry));
     archiveFile.write(reinterpret_cast<const char*>(&fileEntry.offset), sizeof(fileEntry.offset));
 }
 
-void Archive::addDirectory( std::ofstream& archiveFile, const std::string& path )
+void Archive::addDirectory( std::ofstream& archiveFile, const std::string& path, const std::string& basePath )
 {
+    std::string relativePath = toRelativePath( basePath, path );
+
     TlvEntry entry;
     entry.tag = DIRECTORY_TAG;
-    entry.length = static_cast<Tag_t>(path.size());
+    entry.length = static_cast<Tag_t>(relativePath.size());
     archiveFile.write(reinterpret_cast<const char*>(&entry), sizeof(entry));
-    archiveFile.write(path.c_str(), path.size());
+    archiveFile.write(relativePath.c_str(), relativePath.size());
 }
 
 Fingerprint Archive::calculateFingerprint( const std::string& path )
@@ -319,6 +328,7 @@ Archive::File Archive::readFile( std::ifstream& archiveFile, uint32_t length )
         {
             file.dataOffset = static_cast<uint32_t>(archiveFile.tellg());
             std::cout << "      data size: " << entry.length << std::endl;
+            file.size = entry.length;
             archiveFile.seekg(entry.length, std::ios::cur); // Skip the data
         }
         else if( entry.tag == DATA_REF_TAG )
@@ -337,8 +347,10 @@ Archive::File Archive::readFile( std::ifstream& archiveFile, uint32_t length )
 
 bool Archive::extractFiles( const std::map<uint32_t, File>& files, const std::string& outPath, std::ifstream& archiveFile )
 {
-    for ( const auto& [offset, file] : files )
+    archiveFile.clear(); // Clear any EOF flags
+    for ( const auto& [offset, cfile] : files )
     {
+        auto file = cfile; // Make a copy to modify if needed
         std::string fullPath = outPath + "/" + file.name;
         std::filesystem::create_directories( std::filesystem::path(fullPath).parent_path() );
 
@@ -348,38 +360,59 @@ bool Archive::extractFiles( const std::map<uint32_t, File>& files, const std::st
             auto it = files.find( file.dataOffsetRef );
             if ( it != files.end() )
             {
-                std::filesystem::copy_file( outPath + "/" + it->second.name, fullPath, std::filesystem::copy_options::overwrite_existing );
-                std::cout << "Copied duplicate file data from: " << it->second.name << " to " << fullPath << std::endl;
+                std::cout << "Extracting duplicate file: " << fullPath << " from a file: " << it->second.name << " referencing offset: " << file.dataOffsetRef << std::endl;
+                file.dataOffset = it->second.dataOffset;
+                file.size = it->second.size;
             }
             else
             {
                 std::cerr << "Error: Could not find original data for duplicate file: " << fullPath << std::endl;
-            }
-        }
-        else
-        {
-            std::ofstream outputFile(fullPath, std::ios::binary);
-            if (!outputFile.is_open())
-            {
-                std::cerr << "Error: Could not open output file for writing: " << fullPath << std::endl;
                 continue;
             }
+        }
+        std::ofstream outputFile(fullPath, std::ios::binary);
+        if (!outputFile.is_open())
+        {
+            std::cerr << "Error: Could not open output file for writing: " << fullPath << std::endl;
+            continue;
+        }
 
-            // This is an original file, read its data
-            char buffer[4096];
-            archiveFile.seekg(file.dataOffset, std::ios::beg);
-            uint32_t remaining = file.size;
-            while (remaining > 0 && (archiveFile.read(buffer, std::min(static_cast<uint32_t>(sizeof(buffer)), remaining)) || archiveFile.gcount() > 0))
+        // This is an original file, read its data
+        char buffer[4096];
+        archiveFile.seekg(file.dataOffset, std::ios::beg);
+        uint32_t remaining = file.size;
+        while (remaining > 0)
+        {
+            uint32_t bytesToRead = std::min(static_cast<uint32_t>(sizeof(buffer)), remaining);
+            archiveFile.read(buffer, bytesToRead);
+            if(archiveFile.gcount() == 0)
             {
-                std::streamsize bytesRead = archiveFile.gcount();
-                outputFile.write(buffer, bytesRead);
-                remaining -= static_cast<uint32_t>(bytesRead);
+                break; // EOF or error
             }
 
-            outputFile.close();
-            std::cout << "Extracted file: " << fullPath << std::endl;
+            std::streamsize bytesRead = archiveFile.gcount();
+            outputFile.write(buffer, bytesRead);
+            remaining -= static_cast<uint32_t>(bytesRead);
         }
+        if (remaining != 0)
+        {
+            std::cerr << "Error: Unexpected end of file while extracting: " << fullPath << " remaining bytes: " << remaining << std::endl;
+        }
+        else 
+        {
+            std::cout << "Extracted file: " << fullPath << " with size: " << file.size << std::endl;
+        }
+
+        outputFile.close();
     }
 
     return true;
+}
+
+std::string Archive::toRelativePath( const std::string& basePath, const std::string& fullPath )
+{
+    std::filesystem::path base(basePath);
+    std::filesystem::path full(fullPath);
+    std::filesystem::path relative = std::filesystem::relative(full, base);
+    return relative.string();
 }

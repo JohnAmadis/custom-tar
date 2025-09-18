@@ -112,9 +112,9 @@ private:
 
     std::map<Fingerprint, File> m_files;
 
-    void addFile( std::ofstream& archiveFile, const std::string& path );
-    void addDuplicateFile( std::ofstream& archiveFile, const std::string& path, const Fingerprint& fingerprint );
-    void addDirectory( std::ofstream& archiveFile, const std::string& path );
+    void addFile( std::ofstream& archiveFile, const std::string& path, const std::string& basePath );
+    void addDuplicateFile( std::ofstream& archiveFile, const std::string& path, const Fingerprint& fingerprint, const std::string& basePath );
+    void addDirectory( std::ofstream& archiveFile, const std::string& path, const std::string& basePath );
 
     Fingerprint calculateFingerprint( const std::string& path );
     bool compareFiles( const std::string& path1, const std::string& path2 );
@@ -126,6 +126,8 @@ private:
     File readFile( std::ifstream& archiveFile, uint32_t length );
 
     bool extractFiles( const std::map<uint32_t, File>& files, const std::string& outPath, std::ifstream& archiveFile );
+
+    static std::string toRelativePath( const std::string& fullPath, const std::string& basePath );
 };
 
 #endif // ARCHIVE_HPP
