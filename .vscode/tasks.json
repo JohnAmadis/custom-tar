@@ -1,28 +1,61 @@
 {
-    // Konfiguracja zadań dla standardowej aplikacji C++
+    // Konfiguracja zadań dla standardowej aplikacji C++ z CMake
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "CMake Configure",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-S", ".",
+                "-B", "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Konfiguruje projekt CMake"
+        },
+        {
             "label": "Build",
             "type": "shell",
-            "command": "bash",
+            "command": "cmake",
             "args": [
-                "-c",
-                "mkdir -p ${workspaceFolder}/build && g++ -g ${workspaceFolder}/*.cpp -o ${workspaceFolder}/build/custom-tar"
+                "--build", "build"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
+            "dependsOn": "CMake Configure",
             "problemMatcher": ["$gcc"],
-            "detail": "Zadanie do budowania aplikacji C++"
+            "detail": "Buduje projekt używając CMake"
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build", "build", "--target", "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Czyści pliki budowania"
         },
         {
             "label": "Run",
             "type": "shell",
-            "command": "${workspaceFolder}/build/output",
+            "command": "${workspaceFolder}/build/bin/custom-tar",
             "group": "test",
-            "detail": "Zadanie do uruchamiania aplikacji C++"
+            "dependsOn": "Build",
+            "detail": "Uruchamia zbudowaną aplikację"
         }
     ]
 }

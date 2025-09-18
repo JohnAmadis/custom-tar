@@ -6,11 +6,43 @@
 #include <fstream>
 #include <optional>
 #include <vector>
+#include <cstring>
 
 #include "IArchive.hpp"
 #include "compiler.h"
 
 using Tag_t = uint32_t;
+
+struct Fingerprint
+{
+    std::string data;
+
+    Fingerprint() = default;
+
+    Fingerprint( const std::string& d )
+    {
+        data = d;
+    }
+
+    bool operator==(const Fingerprint& other) const
+    {
+        return data == other.data;
+    }
+
+    bool operator<(const Fingerprint& other) const
+    {
+        return data < other.data;
+    }
+
+    Fingerprint& operator=(const Fingerprint& other)
+    {
+        if (this != &other)
+        {
+            data = other.data;
+        }
+        return *this;
+    }
+};
 
 constexpr Tag_t operator"" _tag( const char* str, size_t len )
 {
@@ -71,25 +103,29 @@ private:
 
     struct File
     {
-        std::string name;
-        uint32_t size;
-        uint32_t offset;
+        std::string name{};
+        uint32_t size{0};
+        uint32_t offset{0};
+        uint32_t dataOffset{0};
+        uint32_t dataOffsetRef{0};
     };
 
-    std::map<uint64_t, File> m_files;
+    std::map<Fingerprint, File> m_files;
 
     void addFile( std::ofstream& archiveFile, const std::string& path );
-    void addDuplicateFile( std::ofstream& archiveFile, const std::string& path, uint64_t fingerprint );
+    void addDuplicateFile( std::ofstream& archiveFile, const std::string& path, const Fingerprint& fingerprint );
     void addDirectory( std::ofstream& archiveFile, const std::string& path );
 
-    uint64_t calculateFingerprint( const std::string& path );
+    Fingerprint calculateFingerprint( const std::string& path );
     bool compareFiles( const std::string& path1, const std::string& path2 );
-    std::optional<uint64_t> findDuplicate( const std::string& path );
+    std::optional<Fingerprint> findDuplicate( const std::string& path );
 
     static uint32_t getTlvSize( const std::vector<TlvEntry>& entries );
 
     std::string readDirectory( std::ifstream& archiveFile, uint32_t length );
     File readFile( std::ifstream& archiveFile, uint32_t length );
+
+    bool extractFiles( const std::map<uint32_t, File>& files, const std::string& outPath, std::ifstream& archiveFile );
 };
 
 #endif // ARCHIVE_HPP

@@ -3,6 +3,7 @@
 #include "Archive.hpp"
 #include <cerrno>
 #include <cstring>
+#include "xxhash.h"
 
 bool Archive::create(const std::string& outPath, const std::string& inPath)
 {
@@ -42,7 +43,42 @@ bool Archive::create(const std::string& outPath, const std::string& inPath)
 
 bool Archive::extract(const std::string& archivePath, const std::string& outPath)
 {
-    // Implementation of archive extraction goes here
+    std::ifstream archiveFile(archivePath, std::ios::binary);
+    if (!archiveFile.is_open())
+    {
+        std::cerr << "Error: Could not open archive file for reading: " << archivePath << std::endl;
+        std::cerr << "Error: " << strerror(errno) << std::endl;
+        return false;
+    }
+
+    std::filesystem::create_directories( outPath );
+
+    std::map<uint32_t, File> files;
+
+    TlvEntry entry;
+    while (archiveFile.read(reinterpret_cast<char*>(&entry), sizeof(entry)))
+    {
+        std::cout << "Tag: " << to_str(entry.tag) << ", Length: " << std::dec << entry.length << std::endl;
+        if ( entry.tag == DIRECTORY_TAG )
+        {
+            std::string dirName = outPath + "/" + readDirectory( archiveFile, entry.length );
+            std::filesystem::create_directories( dirName );
+            std::cout << "Directory: " << dirName << std::endl;
+            continue;
+        }
+        else if( entry.tag == FILE_TAG )
+        {
+            auto file = readFile( archiveFile, entry.length );
+            std::cout << "File: " << file.name << std::endl;
+            files[file.offset] = file;
+            continue;
+        }
+        archiveFile.seekg(entry.length, std::ios::cur); // Skip the data
+    }
+
+    extractFiles( files, outPath, archiveFile );
+
+    archiveFile.close();
 
     return true; // Return true if successful, false otherwise
 }
@@ -128,7 +164,7 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
             archiveFile.write(buffer, inputFile.gcount());
         }
 
-        uint64_t fingerprint = calculateFingerprint( path );
+        Fingerprint fingerprint = calculateFingerprint( path );
         File file;
         file.name = path;
         file.size = dataEntry.length;
@@ -139,7 +175,7 @@ void Archive::addFile( std::ofstream& archiveFile, const std::string& path )
     inputFile.close();
 }
 
-void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& path, uint64_t fingerprint )
+void Archive::addDuplicateFile( std::ofstream& archiveFile, const std::string& path, const Fingerprint& fingerprint )
 {
     auto fileEntry = m_files[fingerprint];
 
@@ -176,21 +212,61 @@ void Archive::addDirectory( std::ofstream& archiveFile, const std::string& path 
     archiveFile.write(path.c_str(), path.size());
 }
 
-uint64_t Archive::calculateFingerprint( const std::string& path )
+Fingerprint Archive::calculateFingerprint( const std::string& path )
 {
-    // Implementation of fingerprint calculation goes here
-    return 0;
+    XXH64_state_t* state = XXH64_createState();
+    XXH64_reset(state, 0);
+
+    std::ifstream f(path, std::ios::binary);
+    std::vector<char> buf(64*1024);
+    while (f) {
+        f.read(buf.data(), buf.size());
+        std::streamsize r = f.gcount();
+        if (r > 0) XXH64_update(state, buf.data(), (size_t)r);
+    }
+    uint64_t digest = XXH64_digest(state);
+    XXH64_freeState(state);
+
+    std::ostringstream ss;
+    ss << std::hex << std::setw(16) << std::setfill('0') << digest;
+    return ss.str(); 
 }
 
 bool Archive::compareFiles( const std::string& path1, const std::string& path2 )
 {
-    // Implementation of file comparison goes here
+    std::ifstream file1(path1, std::ios::binary);
+    std::ifstream file2(path2, std::ios::binary);
+    if (!file1.is_open() || !file2.is_open())
+    {
+        std::cerr << "Error: Could not open files for comparison: " << path1 << ", " << path2 << std::endl;
+        return false;
+    }
+    char buffer1[4096];
+    char buffer2[4096];
+    do
+    {
+        file1.read(buffer1, sizeof(buffer1));
+        file2.read(buffer2, sizeof(buffer2));
+        std::streamsize bytesRead1 = file1.gcount();
+        std::streamsize bytesRead2 = file2.gcount();
+        if (bytesRead1 != bytesRead2 || std::memcmp(buffer1, buffer2, bytesRead1) != 0)
+        {
+            file1.close();
+            file2.close();
+        }
+    } while (file1 && file2);
+    file1.close();
+    file2.close();
+    if (file1.eof() && file2.eof())
+    {
+        return true;
+    }
     return false;
 }
 
-std::optional<uint64_t> Archive::findDuplicate( const std::string& path )
+std::optional<Fingerprint> Archive::findDuplicate( const std::string& path )
 {
-    uint64_t fingerprint = calculateFingerprint( path );
+    auto fingerprint = calculateFingerprint( path );
     if ( m_files.find( fingerprint ) != m_files.end() && compareFiles( path, m_files[fingerprint].name ) )
     {
         return fingerprint;
@@ -241,19 +317,69 @@ Archive::File Archive::readFile( std::ifstream& archiveFile, uint32_t length )
         }
         else if( entry.tag == DATA_TAG )
         {
-            archiveFile.seekg(entry.length, std::ios::cur); // Skip the data
+            file.dataOffset = static_cast<uint32_t>(archiveFile.tellg());
             std::cout << "      data size: " << entry.length << std::endl;
+            archiveFile.seekg(entry.length, std::ios::cur); // Skip the data
         }
         else if( entry.tag == DATA_REF_TAG )
         {
             uint32_t dataOffset;
             archiveFile.read(reinterpret_cast<char*>(&dataOffset), sizeof(dataOffset));
-            file.offset = dataOffset;
-            std::cout << "Data Reference Offset: " << file.offset << std::endl;
+            file.dataOffsetRef = dataOffset;
+            std::cout << "Data Reference Offset: " << dataOffset << std::endl;
         }
         
         bytesRead += entry.length;
     }
 
     return file;
+}
+
+bool Archive::extractFiles( const std::map<uint32_t, File>& files, const std::string& outPath, std::ifstream& archiveFile )
+{
+    for ( const auto& [offset, file] : files )
+    {
+        std::string fullPath = outPath + "/" + file.name;
+        std::filesystem::create_directories( std::filesystem::path(fullPath).parent_path() );
+
+        if ( file.dataOffsetRef != 0 )
+        {
+            // This is a duplicate file, find the original data
+            auto it = files.find( file.dataOffsetRef );
+            if ( it != files.end() )
+            {
+                std::filesystem::copy_file( outPath + "/" + it->second.name, fullPath, std::filesystem::copy_options::overwrite_existing );
+                std::cout << "Copied duplicate file data from: " << it->second.name << " to " << fullPath << std::endl;
+            }
+            else
+            {
+                std::cerr << "Error: Could not find original data for duplicate file: " << fullPath << std::endl;
+            }
+        }
+        else
+        {
+            std::ofstream outputFile(fullPath, std::ios::binary);
+            if (!outputFile.is_open())
+            {
+                std::cerr << "Error: Could not open output file for writing: " << fullPath << std::endl;
+                continue;
+            }
+
+            // This is an original file, read its data
+            char buffer[4096];
+            archiveFile.seekg(file.dataOffset, std::ios::beg);
+            uint32_t remaining = file.size;
+            while (remaining > 0 && (archiveFile.read(buffer, std::min(static_cast<uint32_t>(sizeof(buffer)), remaining)) || archiveFile.gcount() > 0))
+            {
+                std::streamsize bytesRead = archiveFile.gcount();
+                outputFile.write(buffer, bytesRead);
+                remaining -= static_cast<uint32_t>(bytesRead);
+            }
+
+            outputFile.close();
+            std::cout << "Extracted file: " << fullPath << std::endl;
+        }
+    }
+
+    return true;
 }
