@@ -128,6 +128,9 @@ private:
     bool extractFiles( const std::map<uint32_t, File>& files, const std::string& outPath, std::ifstream& archiveFile );
 
     static std::string toRelativePath( const std::string& fullPath, const std::string& basePath );
+
+    bool compress( const std::string& inPath, const std::string& outPath );
+    bool decompress( const std::string& inPath, const std::string& outPath );
 };
 
 #endif // ARCHIVE_HPP

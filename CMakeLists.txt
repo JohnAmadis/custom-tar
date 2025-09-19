@@ -12,6 +12,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+add_subdirectory(zlib)
+
 # Add debug flags for better debugging experience
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
@@ -24,7 +26,11 @@ add_executable(custom-tar
     main.cpp
     Archive.cpp
     xxhash.c
+    FastLZ/fastlz.c
 )
+
+# Link libraries
+target_link_libraries(custom-tar PRIVATE zlibstatic)
 
 # Include directories if needed
 # target_include_directories(custom-tar PRIVATE include)
